@@ -293,6 +293,38 @@ The system constructs a concise, semicolon-separated justification string for ea
 
 ---
 
+## Advanced Benchmarks & Model Precision
+
+To validate our semantic processing across the entire **100,000+ candidate dataset** and ensure fairness, we generated the following benchmarks on our top shortlisted candidates.
+
+### 1. Hybrid Search Precision & Lexical Baseline
+We compare the initial Keyword Lexical baseline across all 100k candidates to our Top 100, proving that our hybrid model extracts the highly qualified talent from the long tail.
+
+![Filtering Precision](benchmarks/precision_funnel.png)
+
+### 2. Semantic vs Lexical Effectiveness
+Proves that the semantic embedding rescues candidates who might not have had the exact keyword overlap but are perfect contextual fits.
+
+![Hybrid Effectiveness](benchmarks/hybrid_effectiveness.png)
+
+### 3. Diversity & Fairness Analysis
+We plotted the Experience Distribution and Geographic Location spread to guarantee the model does not unintentionally bias against specific tenures or non-metro locations.
+
+![Experience Diversity](benchmarks/experience_distribution.png)
+![Location Diversity](benchmarks/location_diversity.png)
+
+### 4. Component Score Contributions
+Shows the exact percentage contribution of each feature to the final scores of our Top 20 Candidates.
+
+![Score Components](benchmarks/score_components.png)
+
+### 5. Hardware Inference Latency
+Comparing execution time of the 30k embedding pool on Mac Apple Silicon GPU (MPS) vs standard CPU processing.
+
+![Device Throughput](benchmarks/device_throughput.png)
+
+---
+
 ## Setup & Execution
 
 ### 1. Installation
