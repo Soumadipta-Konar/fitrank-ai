@@ -1,0 +1,81 @@
+# Redrob Hackathon — Submission Metadata Template
+#
+# Copy this file to your repo root as `submission_metadata.yaml` and fill it in.
+# The fields here should match what you submit via the portal at upload time.
+# Stage 3 review uses this file to verify your portal metadata.
+
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "ERA"  # Used in leaderboard and announcements
+
+primary_contact:
+  name: "Soumadipta Konar"
+  email: "[EMAIL_ADDRESS]"   # Used for all organizer communication
+  phone: "+91-8017565128"       
+
+team_members:
+  - name: "Sagnik Biswas"
+    email: "[EMAIL_ADDRESS]"
+    role: "ML Engineer"      
+
+  - name: "Gyan Ranjan"
+    email: "gyanranjanjee@gmail.com"
+    role: "Backend Engineer" 
+
+  - name: "Kausani Pyne"
+    email: "[EMAIL_ADDRESS]"
+    role: "Backend Engineer" 
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/Soumadipta-Konar/fitrank-ai"
+
+sandbox_link: ""
+
+reproduce_command: "python rank.py --raw_dir data/raw --out data/output/submission.csv --debug data/output/top100_debug.csv"
+
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "Local CPU/GPU machine"              # Or: "AWS EC2 c5.4xlarge", "Local Linux box", etc.
+  cpu_cores: 4                                  # Number of CPU cores used
+  ram_gb: 16                                    # Available RAM in GB
+  python_version: "3.11.9"                      # python --version
+  os: "Windows 11 / Linux (Ubuntu)"             # Or "macOS 14.2", etc.
+  uses_gpu_for_inference: false                 # Must be false — see compute constraints
+  has_network_during_ranking: false             # Must be false — no API calls during ranking
+  pre_computation_required: false               # true if you pre-compute embeddings or train models offline
+  pre_computation_time_minutes: 0               # Approximate, if applicable
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+# Transparency only — declared use is NOT penalized. Be honest. Stage 5 interview
+# may verify these declarations against your code; declarations that contradict
+# your code or your interview are flagged.
+ai_tools_used:
+  - "Gemini"
+  - "Claude"
+  - "z.ai"
+  - "Antigravity"
+
+ai_usage_summary: |
+  Used Antigravity for code optimization, debugging tests, dependency management, and writing documentation. Used Claude for architectural guidance. No candidate data was fed to external APIs.
+
+# ============================================================================
+# Approach summary (optional but recommended)
+# ============================================================================
+methodology_summary: |
+  Hybrid semantic & heuristic candidate ranking pipeline processing 100,000 candidate profiles against a Senior AI Engineer JD on a CPU. First, candidates are ingested and compiled into a single unified summary text representation. A global TF-IDF vectorizer (with unigrams and bigrams, min_df=2, max_features=80,000) generates lexical matches against a query of target keywords. Then, a pre-filtering stage selects the top 30,000 candidates based on a weighted combination of lexical, NLP domain, skill depth, title alignment, production fit, experience, company profile, and engagement scores (with a high-recall fallback to force-include outstanding candidates in individual categories). Next, dense embeddings are generated for the pre-filtered candidates and 5 specific queries (the Job Description and 4 expansion queries targeting production ML, scale, startup experience, and retrieval indexing) using a local SentenceTransformer model (all-MiniLM-L6-v2). Cosine similarities are computed using a FAISS Inner Product index, aggregating max and mean query similarity. The final score is a weighted combination of semantic similarity (28%), NLP/IR keywords (15%), lexical matching (13%), skill depth (12%), production signals (10%), title alignment (7%), experience (6%), company profile (4%), evaluation metrics (2.5%), location (1.5%), and notice period (1%). Multiplicative multipliers scale the scores using a candidate engagement score and a honeypot penalty (which checks for stated vs derived experience gaps > 4.5 years, advanced skills with zero months duration, and domain keyword mismatch). Conditional demotions are applied to non-relevant titles (0.35x), low NLP signal (0.78x), and junior candidates with low semantic match (0.70x). Deterministic tie-breaking sorts the top 100 candidates by scores, semantic score, lexical score, behavior score, and candidate ID. Grounded semicolon-delimited justifications under 300 characters are generated using template extractors verified against the candidate's actual profile details.
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true        # I have read submission_spec.md in full
+  code_is_original_work: true       # My code is my team's original work (using AI as a tool is fine)
+  no_collusion: true                # I have not coordinated my submission with other teams
+  honeypot_check_done: true         # OPTIONAL — set true if you explicitly checked for honeypots in your ranking
+  reproduction_tested: true         # I have tested that my reproduce_command runs end-to-end
