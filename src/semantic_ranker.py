@@ -31,10 +31,6 @@ def build_jd_queries(jd_text):
         (
             "strong product engineer startup scrappy ownership backend Python ML systems deployed production code"
         ),
-        (
-            "avoid candidates who only have generic consulting background, pure tutorials, unrelated computer vision, "
-            "speech, design, marketing, HR, sales, or keyword stuffing without production AI evidence"
-        ),
     ]
 
 
@@ -45,11 +41,21 @@ def compute_semantic_scores(
     device="auto",
     batch_size=256,
     top_k=25000,
+    candidate_indices=None,
 ):
     device = get_device(device)
 
     print(f"Embedding model: {model_name}")
     print(f"Embedding device: {device}")
+
+    if candidate_indices is None:
+        candidate_indices = np.arange(len(df))
+    else:
+        candidate_indices = np.asarray(candidate_indices)
+
+    pool_df = df.iloc[candidate_indices].copy()
+
+    print(f"Semantic pool size: {len(pool_df)} / {len(df)}")
 
     model = SentenceTransformer(model_name, device=device)
 
@@ -63,7 +69,7 @@ def compute_semantic_scores(
         show_progress_bar=True,
     ).astype("float32")
 
-    candidate_texts = df["semantic_text"].tolist()
+    candidate_texts = pool_df["semantic_text"].tolist()
 
     candidate_embeddings = model.encode(
         candidate_texts,
@@ -78,29 +84,32 @@ def compute_semantic_scores(
     index = faiss.IndexFlatIP(dim)
     index.add(candidate_embeddings)
 
-    top_k = min(top_k, len(df))
+    top_k = min(top_k, len(pool_df))
 
-    distances, indices = index.search(query_embeddings, top_k)
+    distances, local_indices = index.search(query_embeddings, top_k)
 
-    max_semantic = np.zeros(len(df), dtype=np.float32)
-    avg_semantic = np.zeros(len(df), dtype=np.float32)
-    counts = np.zeros(len(df), dtype=np.float32)
+    pool_scores_max = np.zeros(len(pool_df), dtype=np.float32)
+    pool_scores_avg = np.zeros(len(pool_df), dtype=np.float32)
+    counts = np.zeros(len(pool_df), dtype=np.float32)
 
     for query_idx in range(len(jd_queries)):
-        idxs = indices[query_idx]
+        idxs = local_indices[query_idx]
         vals = distances[query_idx]
 
-        max_semantic[idxs] = np.maximum(max_semantic[idxs], vals)
-        avg_semantic[idxs] += vals
+        pool_scores_max[idxs] = np.maximum(pool_scores_max[idxs], vals)
+        pool_scores_avg[idxs] += vals
         counts[idxs] += 1
 
-    avg_semantic = np.divide(
-        avg_semantic,
+    pool_scores_avg = np.divide(
+        pool_scores_avg,
         counts,
-        out=np.zeros_like(avg_semantic),
+        out=np.zeros_like(pool_scores_avg),
         where=counts > 0,
     )
 
-    semantic_score = 0.75 * max_semantic + 0.25 * avg_semantic
+    pool_semantic_score = 0.75 * pool_scores_max + 0.25 * pool_scores_avg
 
-    return semantic_score
+    full_scores = np.zeros(len(df), dtype=np.float32)
+    full_scores[candidate_indices] = pool_semantic_score
+
+    return full_scores

@@ -21,6 +21,7 @@ from src.data_loader import get_bundle_paths, read_docx, load_candidates
 from src.semantic_ranker import compute_semantic_scores
 from src.lexical_ranker import compute_lexical_scores
 from src.features import add_feature_scores
+from src.prefilter import select_candidate_pool
 from src.scoring import add_final_scores
 from src.submission import create_submission, validate_submission
 
@@ -33,31 +34,42 @@ def run_pipeline(
     device,
     batch_size,
     top_k,
+    candidate_pool,
 ):
     raw_dir = Path(raw_dir)
     out_path = Path(out_path)
     debug_path = Path(debug_path) if debug_path else None
 
     print("=" * 80)
-    print("FitRank AI: Hybrid Semantic Candidate Ranking")
+    print("FitRank AI: Optimized Hybrid Semantic Candidate Ranking")
     print("=" * 80)
 
-    print("\n[1/8] Finding competition files...")
+    print("\n[1/9] Finding competition files...")
     paths = get_bundle_paths(raw_dir)
 
     print("Candidates:", paths["candidates"])
     print("Job description:", paths["job_description"])
     print("Validator:", paths["validator"])
 
-    print("\n[2/8] Reading job description...")
+    print("\n[2/9] Reading job description...")
     jd_text = read_docx(paths["job_description"])
     print("JD characters:", len(jd_text))
 
-    print("\n[3/8] Loading candidate profiles...")
+    print("\n[3/9] Loading candidate profiles...")
     df = load_candidates(paths["candidates"])
     print("Loaded candidates:", len(df))
 
-    print("\n[4/8] Computing semantic scores using SentenceTransformer + FAISS...")
+    print("\n[4/9] Computing TF-IDF lexical scores on all candidates...")
+    df["lexical_score"] = compute_lexical_scores(df)
+
+    print("\n[5/9] Computing structured feature scores on all candidates...")
+    df = add_feature_scores(df)
+
+    print("\n[6/9] Selecting candidate pool for semantic ranking...")
+    pool_indices = select_candidate_pool(df, pool_size=candidate_pool)
+    print("Selected candidate pool:", len(pool_indices))
+
+    print("\n[7/9] Computing semantic scores using SentenceTransformer + FAISS on pool...")
     df["semantic_score"] = compute_semantic_scores(
         df=df,
         jd_text=jd_text,
@@ -65,15 +77,10 @@ def run_pipeline(
         device=device,
         batch_size=batch_size,
         top_k=top_k,
+        candidate_indices=pool_indices,
     )
 
-    print("\n[5/8] Computing TF-IDF lexical scores...")
-    df["lexical_score"] = compute_lexical_scores(df)
-
-    print("\n[6/8] Computing structured feature scores...")
-    df = add_feature_scores(df)
-
-    print("\n[7/8] Computing final ranking...")
+    print("\n[8/9] Computing final ranking...")
     df = add_final_scores(df)
 
     print("\nTop 10 candidates:")
@@ -92,7 +99,7 @@ def run_pipeline(
     ]
     print(df[preview_cols].head(10).to_string(index=False))
 
-    print("\n[8/8] Creating submission...")
+    print("\n[9/9] Creating submission...")
     submission = create_submission(
         df=df,
         out_path=out_path,
@@ -119,7 +126,7 @@ def run_pipeline(
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="FitRank AI candidate ranking pipeline"
+        description="FitRank AI optimized candidate ranking pipeline"
     )
 
     parser.add_argument(
@@ -167,6 +174,13 @@ def parse_args():
         help="FAISS retrieval pool size per JD query",
     )
 
+    parser.add_argument(
+        "--candidate_pool",
+        type=int,
+        default=30000,
+        help="Number of candidates selected for semantic embedding",
+    )
+
     return parser.parse_args()
 
 
@@ -181,4 +195,5 @@ if __name__ == "__main__":
         device=args.device,
         batch_size=args.batch_size,
         top_k=args.top_k,
+        candidate_pool=args.candidate_pool,
     )
