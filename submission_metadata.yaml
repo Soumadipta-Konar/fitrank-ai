@@ -11,12 +11,12 @@ team_name: "ERA"  # Used in leaderboard and announcements
 
 primary_contact:
   name: "Soumadipta Konar"
-  email: "[EMAIL_ADDRESS]"   # Used for all organizer communication
-  phone: "+91-8017565128"       
+  email: "soumadipta.konar2005@gmail.com"   # Used for all organizer communication
+  phone: "+91-9474088603"       
 
 team_members:
   - name: "Sagnik Biswas"
-    email: "[EMAIL_ADDRESS]"
+    email: "sagnik.biswas2005@gmail.com"
     role: "ML Engineer"      
 
   - name: "Gyan Ranjan"
@@ -24,7 +24,7 @@ team_members:
     role: "Backend Engineer" 
 
   - name: "Kausani Pyne"
-    email: "[EMAIL_ADDRESS]"
+    email: "pynekausani@gmail.com"
     role: "Backend Engineer" 
 # ============================================================================
 # Code and reproducibility
