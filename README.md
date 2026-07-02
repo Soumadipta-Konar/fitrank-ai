@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/network-offline%20only-DE9B34" alt="network">
   <img src="https://img.shields.io/badge/hardware-CPU--only-6C63C9" alt="hardware">
   <img src="https://img.shields.io/badge/honeypot%20demotion-active-red" alt="honeypots">
+  <a href="https://fit-rank-ai.streamlit.app/"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="streamlit"></a>
 </p>
 
 <h1 align="center">FitRank AI: Hybrid Semantic & Heuristic Candidate Ranking</h1>
@@ -24,7 +25,6 @@
 - [Overview](#overview)
 - [Why This Approach](#why-this-approach)
 - [Architecture](#architecture)
-- [Repository Structure](#repository-structure)
 - [Module Deep-Dive](#module-deep-dive)
 - [Scoring Model](#scoring-model)
 - [Anti-Gaming: Consistency Audits](#anti-gaming-consistency-audits)
@@ -48,6 +48,10 @@
 | **Network** | **Fully offline** (No external APIs) | `--network none` |
 | **Ordering** | **Deterministic**, tie-broken by `candidate_id` | — |
 | **Validator** | **Passed** (Clean/Valid submission formatting) | Disqualification threshold |
+
+### 🌐 Live Interactive Sandbox
+An interactive, browser-based evaluation sandbox has been deployed using **Streamlit** to allow real-time uploading, searching, and ranking of candidate files:
+👉 **Streamlit App Link:** [fit-rank-ai.streamlit.app](https://fit-rank-ai.streamlit.app/)
 
 ---
 
@@ -99,32 +103,6 @@ The pipeline coordinates execution through the following stages:
 * **[7/9] Compute Semantic Scores:** Generates dense embeddings on CPU and performs inner product searches using FAISS.
 * **[8/9] Compute Final Ranking:** Fuses scores, applies behavioral multipliers, and runs consistency checks.
 * **[9/9] Create Submission:** Normalizes the final score scale and compiles reasoning texts.
-
----
-
-## Repository Structure
-
-```text
-fitrank-ai/
-├── data/
-│   ├── raw/                           # Raw input files (automatically extracted)
-│   └── output/                        # Final outputs (submission.csv, top100_debug.csv)
-├── notebooks/
-│   └── fitrank_ai.ipynb               # Jupyter notebook demonstrating setup and execution
-├── src/
-│   ├── __init__.py
-│   ├── data_loader.py                 # File parsers, streaming loading, and text serialization
-│   ├── features.py                    # Heuristic score indices and consistency checks
-│   ├── lexical_ranker.py              # TF-IDF cosine similarity vectorization
-│   ├── prefilter.py                   # High-recall filtering to establish the 30K pool
-│   ├── scoring.py                     # Multi-criteria scoring, multipliers, and demotions
-│   ├── semantic_ranker.py             # SentenceTransformer dense embeddings + FAISS search
-│   └── submission.py                  # Score calibration, reason string formatting, and validation
-├── rank.py                            # Main CLI pipeline orchestrator and entry point
-├── requirements.txt                   # Local project Python dependencies
-├── submission_metadata.yaml           # Hackathon submission metadata (identities & methodology summary)
-└── README.md                          # Project documentation (this file)
-```
 
 ---
 
