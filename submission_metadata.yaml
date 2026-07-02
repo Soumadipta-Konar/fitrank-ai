@@ -31,7 +31,7 @@ team_members:
 # ============================================================================
 github_repo: "https://github.com/Soumadipta-Konar/fitrank-ai"
 
-sandbox_link: ""
+sandbox_link: "https://fit-rank-ai.streamlit.app/"
 
 reproduce_command: "python rank.py --raw_dir data/raw --out data/output/submission.csv --debug data/output/top100_debug.csv"
 
