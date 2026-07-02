@@ -131,7 +131,9 @@ Computes individual feature scores for each candidate:
 - **Notice Period Alignment:** Favors immediate availability (≤30 days: `1.0`; ≤60 days: `0.72`; ≤90 days: `0.48`; >90 days: `0.18`).
 - **Preferred Locations:** Prioritizes Indian tech hubs (Noida, Pune, Gurgaon, Mumbai, Bangalore, Hyderabad) with a score of `1.0`, defaulting to `0.75` for general India locations, and `0.20` for international candidates who are not willing to relocate.
 - **Skill Depth Score:** Matches candidate skills against a target list (`IMPORTANT_SKILLS`). Calculates a weighted average based on proficiency multipliers (expert: `1.10`, advanced: `1.00`, intermediate: `0.70`, beginner: `0.35`), skill durations, and endorsements:
-  $$Score_{depth} = 0.45 \cdot Multiplier_{prof} + 0.35 \cdot Multiplier_{months} + 0.20 \cdot Multiplier_{endorse}$$
+  ```text
+  Skill Depth Score = 0.45 * Proficiency Modifier + 0.35 * Duration Modifier + 0.20 * Endorsement Modifier
+  ```
 - **Company Score:** Evaluates history to identify product-focused environments and startups (`1.0`) over IT service consulting firms (`0.40`).
 </details>
 
@@ -150,7 +152,9 @@ Output scores are normalized to `[0, 1]` using Min-Max scaling.
 <br>
 
 Running SentenceTransformer embeddings across 100,000+ candidates on a CPU takes too long. To solve this, `prefilter.py` ranks candidates using a fast weighted score:
-$$Score_{prefilter} = 0.35 \cdot Score_{lexical} + 0.18 \cdot Score_{nlp} + 0.14 \cdot Score_{skill} + 0.10 \cdot Score_{title} + 0.08 \cdot Score_{prod} + 0.06 \cdot Score_{exp} + 0.05 \cdot Score_{behavior} + 0.04 \cdot Score_{company}$$
+```text
+Prefilter Score = 0.35 * Lexical + 0.18 * NLP/IR + 0.14 * Skill Depth + 0.10 * Title + 0.08 * Production + 0.06 * Experience + 0.05 * Behavior + 0.04 * Company
+```
 
 It selects the top 30,000 candidates for dense embedding. To ensure no high-fit candidates are missed, it automatically includes any candidate with high scores in specific features (e.g., lexical score in the 90th percentile, title score $\ge 0.68$, or skill depth $\ge 0.35$).
 </details>
@@ -163,7 +167,9 @@ Loads the `sentence-transformers/all-MiniLM-L6-v2` model locally on CPU.
 It encodes the parsed Job Description along with 4 target sub-queries (designed to capture production experience, search systems, startup roles, and vector databases).
 It then indexes the 30,000 candidate embeddings using a `faiss.IndexFlatIP` index. 
 For each candidate, the final semantic score is computed as:
-$$Score_{semantic} = 0.75 \cdot MaxSimilarity + 0.25 \cdot AvgSimilarity$$
+```text
+Semantic Score = 0.75 * Max Similarity + 0.25 * Average Similarity
+```
 Candidates not selected for the 30K pool are assigned a score of `0.0`.
 </details>
 
@@ -203,7 +209,9 @@ Stores critical metadata required by the challenge review process:
 
 The final ranking score is calculated using the following formula:
 
-$$\text{Final Score} = \text{Base Score} \times \text{behavior\_multiplier} \times \text{honeypot\_penalty} \times \text{demotions}$$
+```text
+Final Score = Base Score * Behavior Multiplier * Honeypot Penalty * Demotions
+```
 
 ### Base Score Allocation
 
@@ -222,8 +230,8 @@ Final Base Score Components:
 └── [1.0%] Notice Period Availability
 ```
 
-- **Behavior Multiplier:** Calibrated using $0.84 + 0.26 \cdot Score_{behavior}$ (rewarding profile completeness, github activity, and response rates).
-- **Honeypot Penalty:** A modifier ($[0.35, 1.0]$) that penalizes profiles with inconsistent or suspicious data.
+- **Behavior Multiplier:** Calibrated using: `0.84 + 0.26 * Behavior Score` (rewarding profile completeness, GitHub activity, and response rates).
+- **Honeypot Penalty:** A multiplier modifier (`[0.35, 1.0]`) that penalizes profiles with inconsistent or suspicious data.
 
 ### Deterministic Tie-Breaking
 If two candidates have identical scores, ties are resolved using the following order:
