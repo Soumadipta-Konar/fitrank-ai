@@ -6,3 +6,5 @@ python-docx
 tqdm
 faiss-cpu
 torch
+streamlit
+streamlit
