@@ -198,7 +198,7 @@ Finally, it runs the competition's `validate_submission.py` script to ensure for
 <br>
 
 Stores critical metadata required by the challenge review process:
-- **Team Identity:** Lists the team name (`ERA`) and contact info of all participants.
+- **Team Identity:** Lists the team name (`The CrackHeads`) and contact info of all participants.
 - **Compute Environment:** Specifies local execution parameters, Python version (`3.11.9`), CPU counts (`4`), and offline configurations.
 - **Methodology Summary:** A detailed technical description of the hybrid lexical TF-IDF pre-filtering, dense query expansions, and honeypot checks used in our scoring model.
 </details>
